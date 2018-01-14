@@ -72,11 +72,11 @@ add_action( 'init', 'library_book_search_post_type', 0 );
 
 function library_book_search_scripts() {
 
-//    wp_register_style('bootstrapmin', plugin_dir_url(__FILE__) . 'css/bootstrapmin.css');
-
-//    wp_enqueue_style('bootstrapmin');
-
- //   wp_enqueue_script('myjs', plugins_url( 'js/bootstrap.min.js' , __FILE__), array( 'jquery' ) , true);
+	wp_register_style('book-style', plugin_dir_url(__FILE__) . 'css/book_search.css');
+	wp_enqueue_script( 'ajax-script', plugins_url( '/js/book_search.js', __FILE__ ), array('jquery') );
+// in JavaScript, object properties are accessed as ajax_object.ajax_url, ajax_object.form_type
+	wp_localize_script( 'ajax-script', 'ajax_object',
+		array( 'ajax_url' => admin_url( 'admin-ajax.php' ), 'form_type' => 'lib_book_search' ) );
 }
 
 add_action('wp_enqueue_scripts', 'library_book_search_scripts');
@@ -160,67 +160,65 @@ function book_author() {
 }
 add_action( 'init', 'book_author', 0 );
 
-
 /*
-  Meta Box generator
-  Custom field of price and star ratings
+  Meta Box of Custom field of price and star ratings
 
  */
 
-function book_fields_get_meta( $value ) {
-	global $post;
+  function book_fields_get_meta( $value ) {
+  	global $post;
 
-	$field = get_post_meta( $post->ID, $value, true );
-	if ( ! empty( $field ) ) {
-		return is_array( $field ) ? stripslashes_deep( $field ) : stripslashes( wp_kses_decode_entities( $field ) );
-	} else {
-		return false;
-	}
-}
+  	$field = get_post_meta( $post->ID, $value, true );
+  	if ( ! empty( $field ) ) {
+  		return is_array( $field ) ? stripslashes_deep( $field ) : stripslashes( wp_kses_decode_entities( $field ) );
+  	} else {
+  		return false;
+  	}
+  }
 
-function book_fields_add_meta_box() {
-	add_meta_box(
-		'book_fields-book-fields',
-		__( 'Book Fields', 'book_fields' ),
-		'book_fields_html',
-		'library_book_search',
-		'normal',
-		'default'
-	);
-}
-add_action( 'add_meta_boxes', 'book_fields_add_meta_box' );
+  function book_fields_add_meta_box() {
+  	add_meta_box(
+  		'book_fields-book-fields',
+  		__( 'Book Fields', 'book_fields' ),
+  		'book_fields_html',
+  		'library_book_search',
+  		'normal',
+  		'default'
+  	);
+  }
+  add_action( 'add_meta_boxes', 'book_fields_add_meta_box' );
 
-function book_fields_html( $post) {
-	wp_nonce_field( '_book_fields_nonce', 'book_fields_nonce' ); ?>
+  function book_fields_html( $post) {
+  	wp_nonce_field( '_book_fields_nonce', 'book_fields_nonce' ); ?>
 
-	<p>Price and Start ratings of books</p>
+  	<p>Price and Start ratings of books</p>
 
-	<p>
-		<label for="book_fields_price"><?php _e( 'Price', 'book_fields' ); ?></label><br>
-		<input type="text" name="book_fields_price" id="book_fields_price" value="<?php echo book_fields_get_meta( 'book_fields_price' ); ?>">
-	</p>	<p>
-		<label for="book_fields_star"><?php _e( 'Star', 'book_fields' ); ?></label><br>
-		<select name="book_fields_star" id="book_fields_star">
-			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '1' ) ? 'selected' : '' ?>>1</option>
-			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '2' ) ? 'selected' : '' ?>>2</option>
-			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '3' ) ? 'selected' : '' ?>>3</option>
-			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '4' ) ? 'selected' : '' ?>>4</option>
-			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '5' ) ? 'selected' : '' ?>>5</option>
-		</select>
-	</p><?php
-}
+  	<p>
+  		<label for="book_fields_price"><?php _e( 'Price', 'book_fields' ); ?></label><br>
+  		<input type="text" name="book_fields_price" id="book_fields_price" value="<?php echo book_fields_get_meta( 'book_fields_price' ); ?>">
+  	</p>	<p>
+  		<label for="book_fields_star"><?php _e( 'Star', 'book_fields' ); ?></label><br>
+  		<select name="book_fields_star" id="book_fields_star">
+  			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '1' ) ? 'selected' : '' ?>>1</option>
+  			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '2' ) ? 'selected' : '' ?>>2</option>
+  			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '3' ) ? 'selected' : '' ?>>3</option>
+  			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '4' ) ? 'selected' : '' ?>>4</option>
+  			<option <?php echo (book_fields_get_meta( 'book_fields_star' ) === '5' ) ? 'selected' : '' ?>>5</option>
+  		</select>
+  		</p><?php
+  	}
 
-function book_fields_save( $post_id ) {
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
-	if ( ! isset( $_POST['book_fields_nonce'] ) || ! wp_verify_nonce( $_POST['book_fields_nonce'], '_book_fields_nonce' ) ) return;
-	if ( ! current_user_can( 'edit_post', $post_id ) ) return;
+  	function book_fields_save( $post_id ) {
+  		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+  		if ( ! isset( $_POST['book_fields_nonce'] ) || ! wp_verify_nonce( $_POST['book_fields_nonce'], '_book_fields_nonce' ) ) return;
+  		if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
-	if ( isset( $_POST['book_fields_price'] ) )
-		update_post_meta( $post_id, 'book_fields_price', esc_attr( $_POST['book_fields_price'] ) );
-	if ( isset( $_POST['book_fields_star'] ) )
-		update_post_meta( $post_id, 'book_fields_star', esc_attr( $_POST['book_fields_star'] ) );
-}
-add_action( 'save_post', 'book_fields_save' );
+  		if ( isset( $_POST['book_fields_price'] ) )
+  			update_post_meta( $post_id, 'book_fields_price', esc_attr( $_POST['book_fields_price'] ) );
+  		if ( isset( $_POST['book_fields_star'] ) )
+  			update_post_meta( $post_id, 'book_fields_star', esc_attr( $_POST['book_fields_star'] ) );
+  	}
+  	add_action( 'save_post', 'book_fields_save' );
 
 /*
 	Usage: book_fields_get_meta( 'book_fields_price' )
@@ -230,11 +228,140 @@ add_action( 'save_post', 'book_fields_save' );
 
 // For search page using shortcode
 
-function  shortcode_for_library_plugin( $atts ) {
+	function  shortcode_for_library_plugin( $atts ) {
 
-	include('faq.php');
+		include('book-search.php');
 
-	return "test";
+	//return "test";
 
+	}
+	add_shortcode( 'search_library_book', 'shortcode_for_library_plugin' );
+
+
+// search ajax method 
+
+	add_action( 'wp_ajax_my_action', 'my_action' );
+	add_action( 'wp_ajax_nopriv_my_action', 'my_action' );
+
+	function my_action() {
+		global $wpdb;
+
+		$book_name = $_POST['book_name'];
+		$book_ratings = $_POST['book_ratings'];
+
+		if( !empty( $_POST['book_publisher'] ) ) {
+			$book_publisher = $_POST['book_publisher'];
+		}
+
+		if( !empty( $_POST['book_author'] ) ) {
+			$book_author = $_POST['book_author'];
+		}
+
+		$args = array(
+			'post_type'  => 'library_book_search',
+			's'  => $book_name,
+     //'relation' => 'OR',
+			'meta_query' => array(
+				'relation' => 'OR',
+				array(
+					'key' => 'book_fields_star',
+					'value' => $book_ratings,
+					'compare' => 'LIKE'
+				),
+			),
+      /*  array(
+            'key' => 'book_fields_price',
+            'value' => array( 111111, 1 ),
+            'compare' => 'BETWEEN',
+            'type' => 'NUMERIC'
+
+        )*/
+
+    );
+		$taxquery = array();
+
+		if(!empty($book_publisher) || isset($book_publisher)  ){
+			array_push($taxquery,  array(
+				'taxonomy' => 'publisher',
+				'field' => 'term_id',
+				'terms' => $book_publisher,
+			));
+		}
+
+
+		if(!empty($book_author) || isset($book_author)  ){
+			array_push($taxquery,  array(
+				'taxonomy' => 'book_author',
+				'field' => 'name',
+				'terms' => $book_author,
+				'operator'    => 'LIKE'
+			));
+		}
+
+		if(!empty($taxquery)){
+			$args['tax_query'] = $taxquery;
+		}
+
+
+		$query = new WP_Query( $args );
+
+		// print_r($wpdb->last_query);
+
+		if ( $query->have_posts() ) : $i=1; ?>
+
+		<!-- pagination here -->
+
+		<div class="search_results" id="search_results" style="">
+			<table class="booktable">
+				<tr>
+					<th>No</th>
+					<th>Book Name</th>
+					<th>Price</th>
+					<th>Author</th>
+					<th>Publisher</th>
+					<th>Ratings</th>
+				</tr>
+
+				<!-- the loop -->
+				<?php while ( $query->have_posts() ) : $query->the_post(); 
+
+				//$book_author = wp_get_post_terms( get_the_ID(), 'book_author',array("fields" => "names"));
+				//$book_publisher = get_the_terms( get_the_ID(), 'publisher');
+
+				foreach (get_the_terms(get_the_ID(), 'book_author') as $cat) {
+					$author_name = $cat->name;
+				}
+
+				foreach (get_the_terms(get_the_ID(), 'publisher') as $cat) {
+					$publisher_name = $cat->name;
+				}
+
+				//print($book_author);
+
+				?>
+
+				<tr>
+					<td><?php echo $i;?></td>
+					<td><?php the_title(); ?></td>
+					<td><?php echo get_post_meta( get_the_ID(), 'book_fields_price', true ); ?></td>
+					<td><?php echo $author_name;  ?></td>
+					<td><?php echo $publisher_name; ?></td>
+					<td><?php echo get_post_meta( get_the_ID(), 'book_fields_star', true ); ?></td>
+				</tr>
+				<?php $i++; endwhile; ?>
+				<!-- end of the loop -->
+
+				<!-- pagination here -->
+
+				<?php wp_reset_postdata(); ?>
+
+			</table>
+		</div>
+
+	<?php else : ?>
+		<p><?php esc_html_e( 'Sorry, no posts matched your criteria.' ); ?></p>
+
+	<?php endif;
+
+	wp_die();
 }
-add_shortcode( 'search_library_book', 'shortcode_for_library_plugin' );

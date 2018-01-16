@@ -1,6 +1,3 @@
-
-
-
 <div class="container">
 	<div class="search_form_data">
 
@@ -62,7 +59,10 @@
 			<div class="full_div">
 					<p>
 	<label for="amount">Price range:</label>
-	<input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
+	<input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;" value="">
+		<input type="hidden" id="min_amount"  value="0">
+		<input type="hidden" id="max_amount"  value="500">
+
 </p>
 
 <div id="slider-range"></div>

@@ -356,7 +356,7 @@ add_action( 'init', 'book_author', 0 );
 
 				<tr>
 					<td><?php echo $i;?></td>
-					<td><?php the_title(); ?></td>
+					<td><a href="<?php echo esc_url( get_permalink() ); ?>"><?php the_title(); ?></a></td>
 					<td><?php echo get_post_meta( get_the_ID(), 'book_fields_price', true ); ?></td>
 					<td><?php echo $author_name;  ?></td>
 					<td><?php echo $publisher_name; ?></td>

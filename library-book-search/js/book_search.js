@@ -30,4 +30,20 @@ jQuery(document).ready(function($) {
 
     });
 
+
+ 	jQuery( function() {
+		jQuery( "#slider-range" ).slider({
+			range: true,
+			min: 0,
+			max: 500,
+			values: [ 0, 500 ],
+			slide: function( event, ui ) {
+				jQuery( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+			}
+		});
+
+		jQuery( "#amount" ).val( "Min" + jQuery( "#slider-range" ).slider( "values", 0 ) +
+			" - Max" + jQuery( "#slider-range" ).slider( "values", 1 ) );
+	} );
+
 });

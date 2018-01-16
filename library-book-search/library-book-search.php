@@ -3,7 +3,7 @@
 /*
  * Plugin Name: Library Book Search
  * Plugin URI: https://twitter.com/jitendra_popat
- * Description: Create your book list and book search in your wensite. active plugin.go to admin. add new nooks. and just simple paste this [showbooksearch] in your page or in post to show search.
+ * Description: Create your book list and book search in your wensite. active plugin.go to admin. add new nooks. and just simple paste this [search_library_book] in your page or in post to show search.
  * Version: 0.1
  * Author: Jiten IT - Jitendra Popat
  * Author URI: https://twitter.com/jitendra_popat
@@ -72,11 +72,15 @@ add_action( 'init', 'library_book_search_post_type', 0 );
 
 function library_book_search_scripts() {
 
-	wp_register_style('book-style', plugin_dir_url(__FILE__) . 'css/book_search.css');
+	wp_enqueue_style('book-style', plugin_dir_url(__FILE__) . 'css/jquery-ui.css');
+	wp_enqueue_style('jquery-ui', plugin_dir_url(__FILE__) . 'css/library_book.css');
 	wp_enqueue_script( 'ajax-script', plugins_url( '/js/book_search.js', __FILE__ ), array('jquery') );
 // in JavaScript, object properties are accessed as ajax_object.ajax_url, ajax_object.form_type
 	wp_localize_script( 'ajax-script', 'ajax_object',
 		array( 'ajax_url' => admin_url( 'admin-ajax.php' ), 'form_type' => 'lib_book_search' ) );
+
+	wp_enqueue_script( 'jquerymain-script', plugins_url( '/js/jquery-1.12.4.js', __FILE__ ), array('jquery') );
+	wp_enqueue_script( 'jui-script', plugins_url( '/js/jquery-ui.js', __FILE__ ), array('jquery') );
 }
 
 add_action('wp_enqueue_scripts', 'library_book_search_scripts');
@@ -260,52 +264,62 @@ add_action( 'init', 'book_author', 0 );
 		$args = array(
 			'post_type'  => 'library_book_search',
 			's'  => $book_name,
-     //'relation' => 'OR',
+    		'relation' => 'OR',
 			'meta_query' => array(
-				'relation' => 'OR',
+				'relation' => 'AND',
 				array(
 					'key' => 'book_fields_star',
 					'value' => $book_ratings,
 					'compare' => 'LIKE'
 				),
-			),
-      /*  array(
-            'key' => 'book_fields_price',
-            'value' => array( 111111, 1 ),
-            'compare' => 'BETWEEN',
-            'type' => 'NUMERIC'
-
-        )*/
+				array(
+					'key' => 'book_fields_price',
+					'value' => array( 1, 500 ),
+					'type' => 'numeric',
+					'compare' => 'between'
+				)
+			),	
 
     );
-		$taxquery = array();
+		$taxquery = array( 'relation' => 'OR' );
 
-		if(!empty($book_publisher) || isset($book_publisher)  ){
-			array_push($taxquery,  array(
-				'taxonomy' => 'publisher',
-				'field' => 'term_id',
-				'terms' => $book_publisher,
-			));
-		}
-
-
-		if(!empty($book_author) || isset($book_author)  ){
-			array_push($taxquery,  array(
+		// if author name search old by J
+	/*	if(!empty($book_author) || isset($book_author)  ){
+			$taxquery[] = array(
 				'taxonomy' => 'book_author',
 				'field' => 'name',
 				'terms' => $book_author,
-				'operator'    => 'LIKE'
-			));
+				'compare' => 'LIKE'
+			);
+		}*/
+
+		if(!empty($book_author) || isset($book_author)  ){
+			$taxquery[] = array(
+				'taxonomy' => 'book_author',
+				'field' => 'term_id',
+				'terms' => $book_author,
+			);
 		}
+
+
+		if(!empty($book_publisher) || isset($book_publisher)  ){
+			$taxquery[] = array(
+				'taxonomy' => 'publisher',
+				'field' => 'term_id',
+				'terms' => $book_publisher,
+			);
+		}
+		
 
 		if(!empty($taxquery)){
 			$args['tax_query'] = $taxquery;
 		}
 
+		// echo '<pre>' ; print_r($args);
 
 		$query = new WP_Query( $args );
 
-		// print_r($wpdb->last_query);
+	//	 print_r($wpdb->last_query);
 
 		if ( $query->have_posts() ) : $i=1; ?>
 
@@ -359,9 +373,40 @@ add_action( 'init', 'book_author', 0 );
 		</div>
 
 	<?php else : ?>
-		<p><?php esc_html_e( 'Sorry, no posts matched your criteria.' ); ?></p>
-
+		<div class="search_results" id="search_results" style="">
+			<p><?php esc_html_e( 'Sorry, no posts matched your criteria.' ); ?></p>
+		</div>	
 	<?php endif;
 
 	wp_die();
+}
+
+
+add_action( 'admin_menu', 'books_register_ref_page' );
+//add_action( 'admin_init', 'books_ref_page_callback' );
+
+/**
+ * Adds a submenu page under a custom post type parent.
+ */
+function books_register_ref_page() {
+    add_submenu_page(
+        'edit.php?post_type=library_book_search',
+        __( 'Lirbary Books Shortcode', 'textdomain' ),
+        __( 'Shortcode Reference', 'textdomain' ),
+        'manage_options',
+        'books-shortcode-ref',
+        'books_ref_page_callback'
+    );
+}
+
+/**
+ * Display callback for the submenu page.
+ */
+function books_ref_page_callback() { 
+    ?>
+    <div class="wrap">
+        <h1><?php _e( 'Libray Book Search Shortcode', 'textdomain' ); ?></h1>
+        <p><?php _e( 'use this in your page or post to display search form - [search_library_book] ', 'textdomain' ); ?></p>
+    </div>
+    <?php
 }

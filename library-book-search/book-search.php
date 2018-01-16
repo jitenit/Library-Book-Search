@@ -1,4 +1,6 @@
 
+
+
 <div class="container">
 	<div class="search_form_data">
 
@@ -11,8 +13,19 @@
 					<input type="text" name="Book Name" id="book_name">
 				</div>
 				<div class="half_div">
+					<?php 
+				$terms = get_terms([
+					'taxonomy' => 'book_author',
+					'hide_empty' => false,
+				]);
+				?>
 					<label for="book_author">Book Author:</label>
-					<input type="text" name="Book Author" id="book_author">
+						<select name="Book Author" id="book_author">
+						<option value=""> </option>
+						<?php foreach ($terms as $term){ ?>
+						<option value="<?php echo $term->term_id;?>"><?php echo $term->name;?></option>
+]						<?php } ?>
+					</select>
 				</div>
 			</div>
 
@@ -47,12 +60,12 @@
 			</div>	
 
 			<div class="full_div">
-				 <div data-role="rangeslider">
-        <label for="price-min">Price:</label>
-        <input type="range" name="price-min" id="price-min" value="200" min="0" max="1000">
-        <label for="price-max">Price:</label>
-        <input type="range" name="price-max" id="price-max" value="800" min="0" max="1000">
-      </div>
+					<p>
+	<label for="amount">Price range:</label>
+	<input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
+</p>
+
+<div id="slider-range"></div>
         	</div>
 			
 			<div class="button"><br>
